@@ -13,6 +13,8 @@ import {
 import { ErrorOverlay } from "./ErrorOverlay";
 import type { ColorScheme } from "@/hooks/useColorScheme";
 
+
+
 export type FactAction = {
   type: "save";
   factId: string;
@@ -49,6 +51,21 @@ export function ChatKitPanel({
   onResponseEnd,
   onThemeRequest,
 }: ChatKitPanelProps) {
+
+// State for store selection dropdown
+const [selectedStore, setSelectedStore] = useState("default");
+const [showDropdown, setShowDropdown] = useState(false);
+
+const availableStores = [
+  { id: "default", name: "Default Store" },
+  { id: "knowledge_base_2", name: "Knowledge Base 2" },
+  { id: "customer_docs", name: "Customer Docs" },
+];
+
+
+
+
+
   const processedFacts = useRef(new Set<string>());
   const [errors, setErrors] = useState<ErrorState>(() => createInitialErrors());
   const [isInitializingSession, setIsInitializingSession] = useState(true);
@@ -267,6 +284,19 @@ export function ChatKitPanel({
       colorScheme: theme,
       ...getThemeConfig(theme),
     },
+    header: {
+      leftAction: {
+        icon: "settings-cog",
+        onClick: () => {
+          alert("Settings clicked!");
+          // you can open a modal, toggle theme, etc.
+        },
+      },
+      rightAction: {
+        icon: "settings-cog",
+        onClick: () => setShowDropdown((prev) => !prev),
+      },
+    },
     startScreen: {
       greeting: GREETING,
       prompts: STARTER_PROMPTS,
@@ -345,6 +375,7 @@ export function ChatKitPanel({
 
   return (
     <div className="relative pb-8 flex h-[90vh] w-full rounded-2xl flex-col overflow-hidden bg-white shadow-sm transition-colors dark:bg-slate-900">
+      {/* ✅ ChatKit main chat interface */}
       <ChatKit
         key={widgetInstanceKey}
         control={chatkit.control}
@@ -354,6 +385,27 @@ export function ChatKitPanel({
             : "block h-full w-full"
         }
       />
+  
+      {/* ✅ Add the dropdown RIGHT HERE */}
+      {showDropdown && (
+        <div className="absolute top-4 right-4 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg shadow-lg z-50">
+          {availableStores.map((store) => (
+            <button
+              key={store.id}
+              className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-slate-700 ${
+                selectedStore === store.id ? "font-semibold" : ""
+              }`}
+              onClick={() => {
+                setSelectedStore(store.id);
+                setShowDropdown(false);
+              }}
+            >
+              {store.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       <ErrorOverlay
         error={blockingError}
         fallbackMessage={
